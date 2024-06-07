@@ -11,11 +11,69 @@ from django.shortcuts import redirect
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
 from django.views.generic import ListView, DetailView, View
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
+import json
+import requests
 
 from .forms import CheckoutForm, CouponForm, RefundForm, PaymentForm
-from .models import Item, OrderItem, Order, Address, Payment, Coupon, Refund, UserProfile
+from .models import Item, OrderItem, Order, Address, Payment, Coupon, Refund, UserProfile   
+from .models import Agent, Conversation
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
+
+@ensure_csrf_cookie
+@csrf_exempt
+def chat_view(request):
+    if request.method == 'POST':
+        try:
+            user_message = request.POST.get('message')
+            user_id = request.user.id
+            agent_name = request.POST.get('agent', 'Tor')  # Default to 'Tor'
+
+            # Use Heroku-deployed Flask API URLs
+            if agent_name == 'Tor':
+                colab_api_url = "https://store-crew-998bbce8ba9f.herokuapp.com/get_response_tor"
+            elif agent_name == 'Mika':
+                colab_api_url = "https://store-crew-998bbce8ba9f.herokuapp.com/get_response_mika"
+            else:
+                colab_api_url = "https://store-crew-998bbce8ba9f.herokuapp.com/get_response_kaa"
+
+            response = requests.post(colab_api_url, json={"user_input": user_message})
+            response.raise_for_status()  # Raise an HTTPError for bad responses
+            agent_response = response.json().get("response")
+
+            # Save user message
+            user_conversation = Conversation.objects.create(
+                user_id=user_id,
+                agent_id=Agent.objects.get(name=agent_name).id,
+                message=user_message
+            )
+
+            # Save agent response
+            agent_conversation = Conversation.objects.create(
+                user_id=user_id,
+                agent_id=Agent.objects.get(name=agent_name).id,
+                message=agent_response
+            )
+
+            return JsonResponse({
+                'user_message': user_message,
+                'agent_response': agent_response
+            })
+
+        except requests.RequestException as e:
+            # Handle request errors (e.g., network issues)
+            return JsonResponse({'error': 'Request failed: {}'.format(e)}, status=500)
+        except Agent.DoesNotExist:
+            # Handle case where agent does not exist in the database
+            return JsonResponse({'error': 'Agent does not exist'}, status=500)
+        except Exception as e:
+            # Handle any other exceptions
+            return JsonResponse({'error': 'An error occurred: {}'.format(e)}, status=500)
+
+    return render(request, 'chat.html')
+
 
 
 def create_ref_code():

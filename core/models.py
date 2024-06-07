@@ -4,6 +4,9 @@ from django.db import models
 from django.db.models import Sum
 from django.shortcuts import reverse
 from django_countries.fields import CountryField
+from django.contrib.auth.models import User
+from django.utils import timezone
+
 
 
 CATEGORY_CHOICES = (
@@ -22,6 +25,17 @@ ADDRESS_CHOICES = (
     ('B', 'Billing'),
     ('S', 'Shipping'),
 )
+
+
+class Agent(models.Model):
+    name = models.CharField(max_length=100)
+
+class Conversation(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    agent = models.ForeignKey(Agent, on_delete=models.CASCADE)
+    message = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+
 
 
 class UserProfile(models.Model):

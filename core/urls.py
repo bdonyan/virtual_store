@@ -1,4 +1,6 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .api_views import ConversationViewSet, AgentViewSet
 from .views import (
     ItemDetailView,
     CheckoutView,
@@ -9,10 +11,16 @@ from .views import (
     remove_single_item_from_cart,
     PaymentView,
     AddCouponView,
-    RequestRefundView
+    RequestRefundView,
 )
 
+from . import views 
+
 app_name = 'core'
+
+router = DefaultRouter()
+router.register(r'agents', AgentViewSet)
+router.register(r'converations', ConversationViewSet)
 
 urlpatterns = [
     path('', HomeView.as_view(), name='home'),
@@ -24,6 +32,8 @@ urlpatterns = [
     path('remove-from-cart/<slug>/', remove_from_cart, name='remove-from-cart'),
     path('remove-item-from-cart/<slug>/', remove_single_item_from_cart,
          name='remove-single-item-from-cart'),
-    path('payment/<payment_option>/', PaymentView.as_view(), name='payment'),
-    path('request-refund/', RequestRefundView.as_view(), name='request-refund')
+    path('payment/<payment_option>/', PaymentView.as_view(), name='payment'),   
+    path('request-refund/', RequestRefundView.as_view(), name='request-refund'),
+    path('api/', include(router.urls)),
+    path('chat/', views.chat_view, name='chat'),
 ]

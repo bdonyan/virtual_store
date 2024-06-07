@@ -1,0 +1,53 @@
+<!-- chat.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat</title>
+    <style>
+        /* Add some basic styling */
+        .chatbox { max-width: 600px; margin: 0 auto; }
+        .messages { border: 1px solid #ccc; padding: 10px; height: 400px; overflow-y: scroll; }
+        .message { padding: 5px; }
+        .user-message { text-align: right; }
+    </style>
+</head>
+<body>
+    <div class="chatbox">
+        <div class="messages" id="messages"></div>
+        <input type="text" id="message-input" placeholder="Type your message here...">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <script>
+        function sendMessage() {
+            var input = document.getElementById('message-input');
+            var message = input.value;
+            input.value = '';
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/chat/', true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState == 4 && xhr.status == 200) {
+                    var response = JSON.parse(xhr.responseText);
+                    displayMessage('User: ' + response.user_message, 'user-message');
+                    displayMessage('Agent: ' + response.agent_response, 'agent-message');
+                }
+            };
+            xhr.send('message=' + encodeURIComponent(message));
+        }
+
+        function displayMessage(text, className) {
+            var messagesDiv = document.getElementById('messages');
+            var messageDiv = document.createElement('div');
+            messageDiv.className = 'message ' + className;
+            messageDiv.textContent = text;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+    </script>
+</body>
+</html>
