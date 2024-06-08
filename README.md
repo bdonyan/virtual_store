@@ -4,6 +4,11 @@
 
 This project is a backend application for a virtual store, built using Django. The application supports user authentication, product inventory management, and user conversations with AI agents.
 
+![image](https://github.com/bdonyan/virtual_store/assets/66976326/0a44e7b0-7760-4833-98ef-7b63ca61d1dc)
+![image](https://github.com/bdonyan/virtual_store/assets/66976326/743f3e13-60d7-47de-aeab-2f4311fe5639)
+![image](https://github.com/bdonyan/virtual_store/assets/66976326/e6ca2e5e-0a6a-4d83-acc0-b818e8f55a40)
+
+
 ## Features
 
 - User Authentication
